@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "WebFetch(domain:prescriberpoint.com)",
+      "Bash(npm run lint)",
+      "Bash(npx prettier:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run build:*)",
+      "WebFetch(domain:open.fda.gov)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

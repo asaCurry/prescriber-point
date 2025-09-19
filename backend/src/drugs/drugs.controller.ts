@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { DrugsService } from './drugs.service';
 import { CreateDrugDto } from './dto/create-drug.dto';
 import { Drug } from './entities/drug.entity';
+import { DrugSearchResult } from '../fda/fda.service';
 
 @ApiTags('drugs')
 @Controller('drugs')
@@ -25,6 +26,21 @@ export class DrugsController {
     @Query('offset') offset?: number,
   ) {
     return this.drugsService.findAll({ search, limit, offset });
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Type-ahead search for drugs by name or NDC' })
+  @ApiResponse({ status: 200, description: 'Search results', type: [Object] })
+  @ApiQuery({ name: 'q', description: 'Search query (minimum 3 characters)', required: true })
+  @ApiQuery({ name: 'limit', description: 'Maximum number of results', required: false })
+  async searchDrugs(
+    @Query('q') query: string,
+    @Query('limit') limit?: number,
+  ): Promise<DrugSearchResult[]> {
+    if (!query || query.length < 3) {
+      return [];
+    }
+    return this.drugsService.searchDrugs(query, limit || 10);
   }
 
   @Get(':slug')

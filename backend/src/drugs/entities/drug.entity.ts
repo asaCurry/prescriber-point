@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('drugs')
 export class Drug {
@@ -10,6 +16,9 @@ export class Drug {
 
   @Column({ unique: true })
   slug: string;
+
+  @Column({ unique: true })
+  ndc: string;
 
   @Column({ nullable: true })
   genericName: string;

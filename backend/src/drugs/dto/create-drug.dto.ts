@@ -10,6 +10,10 @@ export class CreateDrugDto {
   @IsString()
   slug: string;
 
+  @ApiProperty()
+  @IsString()
+  ndc: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
