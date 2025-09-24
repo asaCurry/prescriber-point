@@ -43,7 +43,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ```bash
 # Start all services with Docker Compose
-npm run dev
+docker-compose up
 ```
 
 ### 4. Access the Application
@@ -73,13 +73,10 @@ Get your API key at: [console.anthropic.com](https://console.anthropic.com)
 
 ### Why Anthropic Claude?
 
-**Decision**: Chose Anthropic Claude 3.5 Sonnet over other AI providers
+**Decision**: Chose Anthropic Claude 4 Sonnet
 **Rationale**:
 
-- **Medical Accuracy**: Claude excels at medical content generation with better understanding of clinical contexts
-- **Safety**: Built-in safety measures prevent harmful medical advice generation
-- **Consistency**: More reliable output quality for healthcare professional content
-- **Context Understanding**: Superior ability to process complex FDA label data
+Claude 4 Sonnet works well for medical data enrichment because it can pull key details from complex text and organize them in useful ways while balancing complexity to response time. Additionally, it has built in medical safeguard and will avoid providing overly optimistic medical advice or suggestions. It’s reliable for handling sensitive information and adds helpful context to raw data. Still, a model built specifically for medical use would usually be more accurate and better aligned with clinical standards.
 
 ### Model Context Protocol (MCP) Integration
 
