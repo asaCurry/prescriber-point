@@ -1,0 +1,65 @@
+echo "🔍 Running pre-commit checks..."
+
+# Function to check if we're in a git repository
+check_git_repo() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "❌ Not in a git repository"
+    exit 1
+  fi
+}
+
+# Function to run checks in a directory if it exists
+run_checks_in_dir() {
+  local dir=$1
+  local name=$2
+  
+  if [ -d "$dir" ]; then
+    echo "📁 Running $name checks..."
+    cd "$dir"
+    
+    # Check if package.json exists
+    if [ -f "package.json" ]; then
+      echo "  🧹 Linting..."
+      if npm run lint; then
+        echo "  ✅ Linting passed"
+      else
+        echo "  ❌ Linting failed"
+        exit 1
+      fi
+      
+      echo "  🔧 Type checking..."
+      if npm run build; then
+        echo "  ✅ Type checking passed"
+      else
+        echo "  ❌ Type checking failed"
+        exit 1
+      fi
+      
+      echo "  🧪 Running tests..."
+      # Use test:ci if available, otherwise fall back to regular test
+      if npm run test:ci 2>/dev/null || npm test -- --passWithNoTests --silent; then
+        echo "  ✅ Tests passed"
+      else
+        echo "  ❌ Tests failed"
+        exit 1
+      fi
+    else
+      echo "  ⚠️  No package.json found, skipping $name checks"
+    fi
+    
+    cd ..
+  else
+    echo "  ⚠️  $dir directory not found, skipping $name checks"
+  fi
+}
+
+# Main execution
+check_git_repo
+
+# Run backend checks
+run_checks_in_dir "backend" "Backend"
+
+# Run frontend checks
+run_checks_in_dir "frontend" "Frontend"
+
+echo "🎉 All pre-commit checks passed!"

@@ -4,60 +4,52 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
+  OneToMany,
 } from 'typeorm';
+import { DrugEnrichment } from './drug-enrichment.entity';
+import { RelatedDrug } from './related-drug.entity';
 
 @Entity('drugs')
 export class Drug {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column()
-  name: string;
+  @Column({ length: 200, nullable: true })
+  brandName?: string;
 
-  @Column({ unique: true })
-  slug: string;
+  @Column({ length: 200, nullable: true })
+  genericName?: string;
 
-  @Column({ unique: true })
-  ndc: string;
+  @Column({ length: 200, nullable: true })
+  manufacturer?: string;
 
-  @Column({ nullable: true })
-  genericName: string;
-
-  @Column()
-  manufacturer: string;
-
-  @Column('text', { array: true, nullable: true })
-  indications: string[];
-
-  @Column('text', { array: true, nullable: true })
-  contraindications: string[];
+  @Column({ length: 20, unique: true, nullable: true })
+  ndc?: string;
 
   @Column('text', { nullable: true })
-  dosing: string;
-
-  @Column('text', { array: true, nullable: true })
-  warnings: string[];
+  indications?: string;
 
   @Column('text', { nullable: true })
-  description: string;
+  warnings?: string;
 
   @Column('text', { nullable: true })
-  aiGeneratedTitle: string;
+  dosage?: string;
 
   @Column('text', { nullable: true })
-  aiGeneratedMetaDescription: string;
-
-  @Column('text', { nullable: true })
-  aiGeneratedContent: string;
+  contraindications?: string;
 
   @Column('jsonb', { nullable: true })
-  aiGeneratedFaqs: any;
+  fdaData?: any;
 
-  @Column('text', { array: true, nullable: true })
-  relatedDrugs: string[];
+  @Column({ length: 200, nullable: true })
+  dataSource?: string;
 
-  @Column('jsonb', { nullable: true })
-  originalLabelData: any;
+  @OneToOne(() => DrugEnrichment, (enrichment) => enrichment.drug)
+  enrichment?: DrugEnrichment;
+
+  @OneToMany(() => RelatedDrug, (relatedDrug) => relatedDrug.sourceDrug)
+  relatedDrugs?: RelatedDrug[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,0 +1,67 @@
+[
+  {
+    "drugId": "e0f7e582-ef7c-4498-9871-55e4f48345ad",
+    "brandName": "Lipitor",
+    "genericName": "ATORVASTATIN CALCIUM",
+    "manufacturer": "Viatris Specialty LLC",
+    "ndc": "58151-155",
+    "indications": "LIPITOR is indicated to reduce the risk of myocardial infarction (MI), stroke, revascularization procedures, and angina in adults with multiple risk factors for coronary heart disease (CHD) but without clinically evident CHD.",
+    "warnings": "LIPITOR may cause myopathy (muscle pain, tenderness, or weakness associated with elevated creatine kinase [CK]) and rhabdomyolysis. Risk factors include age 65 years or greater, uncontrolled hypothyroidism, renal impairment, concomitant use with certain other drugs, and higher LIPITOR dosage.",
+    "dosage": "Take orally once daily with or without food. Recommended starting dosage is 10 or 20 mg once daily; dosage range is 10 mg to 80 mg once daily.",
+    "contraindications": "Acute liver failure or decompensated cirrhosis. Hypersensitivity to atorvastatin or any excipients in LIPITOR.",
+    "dataSource": "FDA",
+    "dataVersion": "20240415"
+  },
+  {
+    "drugId": "19e4bfb8-2ed1-4a6b-adf5-853ad2953362",
+    "brandName": "Metformin Hydrochloride",
+    "genericName": "METFORMIN HYDROCHLORIDE",
+    "manufacturer": "A-S Medication Solutions",
+    "ndc": "50090-7011",
+    "indications": "Metformin hydrochloride tablets are indicated as an adjunct to diet and exercise to improve glycemic control in adults and pediatric patients 10 years of age and older with type 2 diabetes mellitus.",
+    "warnings": "Lactic acidosis is a rare but serious metabolic complication that can occur due to metformin accumulation during treatment with metformin hydrochloride tablets.",
+    "dosage": "Starting dose: 500 mg orally twice a day or 850 mg once a day, with meals. Increase the dose in increments of 500 mg weekly or 850 mg every 2 weeks, up to a maximum dose of 2550 mg per day.",
+    "contraindications": "Severe renal impairment (eGFR below 30 mL/min/1.73 m²). Hypersensitivity to metformin. Acute or chronic metabolic acidosis, including diabetic ketoacidosis.",
+    "dataSource": "FDA",
+    "dataVersion": "20240821"
+  },
+  {
+    "drugId": "00b256d4-1691-cc3b-e063-6294a90a47ec",
+    "brandName": "Lisinopril and Hydrochlorothiazide",
+    "genericName": "LISINOPRIL AND HYDROCHLOROTHIAZIDE TABLETS",
+    "manufacturer": "ST. MARY'S MEDICAL PARK PHARMACY",
+    "ndc": "60760-586",
+    "indications": "Lisinopril and hydrochlorothiazide tablets are indicated for the treatment of hypertension, to lower blood pressure.",
+    "warnings": "Anaphylactoid and Possibly Related Reactions: Presumably because angiotensin-converting enzyme inhibitors affect the metabolism of eicosanoids and polypeptides, including endogenous bradykinin, patients receiving ACE inhibitors may be subject to a variety of adverse reactions.",
+    "dosage": "Lisinopril monotherapy is an effective treatment of hypertension in once-daily doses of 10 mg to 80 mg, while hydrochlorothiazide monotherapy is effective in doses of 12.5 mg to 50 mg per day.",
+    "contraindications": "Hypersensitive to any component of this product and in patients with a history of angioedema related to previous treatment with an angiotensin converting enzyme inhibitor.",
+    "dataSource": "FDA",
+    "dataVersion": "20230629"
+  },
+  {
+    "drugId": "cdaf6ec0-1799-488d-8a08-7477c0cc8359",
+    "brandName": "Levothyroxine sodium",
+    "genericName": "LEVOTHYROXINE SODIUM",
+    "manufacturer": "A-S Medication Solutions",
+    "ndc": "50090-6115",
+    "indications": "Levothyroxine sodium tablets are indicated in adult and pediatric patients, including neonates, as a replacement therapy in primary (thyroidal), secondary (pituitary), and tertiary (hypothalamic) congenital or acquired hypothyroidism.",
+    "warnings": "Levothyroxine sodium should not be used for the treatment of obesity or for weight loss. In euthyroid patients, doses within the range of daily hormonal requirements are ineffective for weight reduction.",
+    "dosage": "Administer once daily, preferably on an empty stomach, one-half to one hour before breakfast with a full glass of water.",
+    "contraindications": "Levothyroxine sodium tablets are contraindicated in patients with uncorrected adrenal insufficiency.",
+    "dataSource": "FDA",
+    "dataVersion": "20230722"
+  },
+  {
+    "drugId": "f44b315c-421f-417b-8ab2-4994624772fc",
+    "brandName": "Amlodipine Besylate",
+    "genericName": "AMLODIPINE BESYLATE",
+    "manufacturer": "Lupin Pharmaceuticals, Inc.",
+    "ndc": "68180-233",
+    "indications": "Amlodipine besylate tablets are calcium channel blocker and may be used alone or in combination with other antihypertensive and antianginal agents for the treatment of hypertension and coronary artery disease.",
+    "warnings": "Increased Angina and/or Myocardial Infarction: Rarely, patients, particularly those with severe obstructive coronary artery disease, have developed increased frequency, duration and/or severity of angina or acute myocardial infarction on starting calcium channel blocker therapy.",
+    "dosage": "Adult recommended starting dose: 5 mg once daily with maximum dose 10 mg once daily. Small, fragile, or elderly patients, or patients with hepatic insufficiency may be started on 2.5 mg once daily.",
+    "contraindications": "Amlodipine besylate tablets are contraindicated in patients with known sensitivity to amlodipine.",
+    "dataSource": "FDA",
+    "dataVersion": "20250822"
+  }
+]

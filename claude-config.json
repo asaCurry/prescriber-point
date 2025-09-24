@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "prescriber-point": {
+      "command": "npm",
+      "args": ["run", "mcp"],
+      "cwd": "backend",
+      "env": {
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+        "DATABASE_HOST": "${DATABASE_HOST:-localhost}",
+        "DATABASE_PORT": "${DATABASE_PORT:-5432}",
+        "DATABASE_NAME": "${DATABASE_NAME:-prescriber_point}",
+        "DATABASE_USER": "${DATABASE_USER:-postgres}",
+        "DATABASE_PASSWORD": "${DATABASE_PASSWORD}"
+      }
+    }
+  }
+}

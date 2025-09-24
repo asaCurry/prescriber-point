@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "prescriber-point-ai": {
+      "command": "node",
+      "args": ["backend/dist/mcp-server.js"],
+      "env": {
+        "NODE_ENV": "production",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    }
+  }
+}

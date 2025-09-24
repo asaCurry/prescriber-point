@@ -1,54 +1,59 @@
-import { IsString, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsObject } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateDrugDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Unique drug identifier from external source (e.g., FDA SPL ID)' })
   @IsString()
-  name: string;
+  drugId: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Brand/trade name of the drug' })
   @IsString()
-  slug: string;
+  brandName: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'NDC (National Drug Code)' })
   @IsString()
   ndc: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Generic name of the drug' })
   @IsOptional()
   @IsString()
   genericName?: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Manufacturer name' })
   @IsString()
   manufacturer: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
-  indications?: string[];
+  @ApiProperty({ description: 'Data source (e.g., FDA, RxNorm)' })
+  @IsString()
+  dataSource: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
-  contraindications?: string[];
-
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Data version for tracking' })
   @IsOptional()
   @IsString()
-  dosing?: string;
+  dataVersion?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
-  warnings?: string[];
-
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Drug indications and usage' })
   @IsOptional()
   @IsString()
-  description?: string;
+  indications?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Warnings and precautions' })
   @IsOptional()
-  originalLabelData?: any;
+  @IsString()
+  warnings?: string;
+
+  @ApiPropertyOptional({ description: 'Dosage and administration information' })
+  @IsOptional()
+  @IsString()
+  dosage?: string;
+
+  @ApiPropertyOptional({ description: 'Contraindications' })
+  @IsOptional()
+  @IsString()
+  contraindications?: string;
+
+  @ApiPropertyOptional({ description: 'Original raw data from FDA API' })
+  @IsOptional()
+  @IsObject()
+  fdaData?: any;
 }

@@ -25,7 +25,12 @@ export function useDebouncedSearch(initialQuery: string = '', debounceMs: number
     refetch,
   } = useQuery({
     queryKey: ['drug-search', debouncedQuery],
-    queryFn: () => drugsApi.search(debouncedQuery, 10),
+    queryFn: async () => {
+      console.log('Searching for:', debouncedQuery)
+      const result = await drugsApi.search(debouncedQuery, 10)
+      console.log('Search results:', result)
+      return result
+    },
     enabled: shouldSearch,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,

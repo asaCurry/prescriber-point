@@ -1,31 +1,18 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, X, ExternalLink } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { DrugSearchResult } from '@/lib/api'
-import Link from 'next/link'
+import { DrugSearchResultItem } from './drug-search-result'
 
 interface TypeAheadSearchProps {
   placeholder?: string
   onResultSelect?: (result: DrugSearchResult) => void
   className?: string
-}
-
-function generateDrugSlug(brandName: string, ndc: string): string {
-  const cleanName = brandName
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim()
-
-  const cleanNDC = ndc.replace(/[^0-9-]/g, '')
-  return `${cleanName}-${cleanNDC}`
 }
 
 export function TypeAheadSearch({
@@ -136,89 +123,73 @@ export function TypeAheadSearch({
 
       {/* Search Results Dropdown */}
       {isOpen && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-auto shadow-lg">
+        <Card className="absolute top-full left-0 right-0 z-50 mt-2 max-h-80 overflow-auto shadow-xl border border-border/50 backdrop-blur-sm bg-background/95">
           <CardContent className="p-0">
             {/* Loading State */}
             {isLoading && (
-              <div className="flex items-center justify-center py-4">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                <span className="ml-2 text-sm text-muted-foreground">Searching...</span>
+              <div className="flex items-center justify-center py-6">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent" />
+                  <span className="text-sm text-muted-foreground font-medium">
+                    Searching FDA database...
+                  </span>
+                </div>
               </div>
             )}
 
             {/* Error State */}
             {error && !isLoading && (
-              <div className="p-4 text-center text-sm text-destructive">
-                Unable to search at the moment. Please try again.
+              <div className="p-6 text-center">
+                <div className="text-sm text-destructive font-medium mb-1">
+                  Search temporarily unavailable
+                </div>
+                <div className="text-xs text-muted-foreground">Please try again in a moment</div>
               </div>
             )}
 
             {/* No Results */}
             {!isLoading && !error && isSearchable && results.length === 0 && (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                No drugs found for &ldquo;{query}&rdquo;
+              <div className="p-6 text-center">
+                <div className="text-sm text-muted-foreground font-medium mb-1">No drugs found</div>
+                <div className="text-xs text-muted-foreground">
+                  Try searching for &ldquo;{query}&rdquo; with different terms
+                </div>
               </div>
             )}
 
             {/* Search Instruction */}
             {query.length > 0 && query.length < 3 && (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Type at least 3 characters to search
+              <div className="p-6 text-center">
+                <div className="text-sm text-muted-foreground font-medium mb-1">Keep typing...</div>
+                <div className="text-xs text-muted-foreground">
+                  Enter at least 3 characters to search
+                </div>
               </div>
             )}
 
             {/* Results */}
             {results.length > 0 && (
-              <div className="py-2">
-                {results.map((result, index) => {
-                  const slug = generateDrugSlug(result.brandName, result.ndc)
-                  const isSelected = index === selectedIndex
-
-                  return (
+              <div>
+                <div className="px-4 py-2 border-b border-border/30">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {results.length} result{results.length !== 1 ? 's' : ''} found
+                  </div>
+                </div>
+                <div className="py-1">
+                  {results.map((result, index) => (
                     <div
                       key={`${result.source}-${result.id}`}
-                      className={`px-4 py-3 cursor-pointer transition-colors ${
-                        isSelected ? 'bg-accent' : 'hover:bg-accent/50'
-                      }`}
-                      onClick={() => handleResultSelect(result)}
+                      className="animate-in fade-in-0 slide-in-from-top-1 duration-200"
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-sm truncate">{result.brandName}</h4>
-                            <Badge
-                              variant={result.source === 'local' ? 'default' : 'secondary'}
-                              className="text-xs"
-                            >
-                              {result.source === 'local' ? 'In Database' : 'FDA'}
-                            </Badge>
-                          </div>
-                          {result.genericName && (
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Generic: {result.genericName}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span>{result.manufacturer}</span>
-                            <span className="font-mono">NDC: {result.ndc}</span>
-                          </div>
-                        </div>
-                        <div className="ml-2 flex-shrink-0">
-                          {result.source === 'local' ? (
-                            <Link
-                              href={`/drugs/${slug}`}
-                              className="text-primary hover:text-primary/80"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Link>
-                          ) : (
-                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
-                      </div>
+                      <DrugSearchResultItem
+                        result={result}
+                        isSelected={index === selectedIndex}
+                        onClick={() => handleResultSelect(result)}
+                      />
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>

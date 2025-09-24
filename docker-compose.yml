@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -24,48 +24,48 @@ services:
     ports:
       - "3001:3001"
     environment:
+      NODE_ENV: ${NODE_ENV:-development}
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_NAME: prescriber_point
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres
-      AI_SERVICE_URL: http://ai-service:8000
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+
+  mcp-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mcp
+    environment:
+      NODE_ENV: production
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: prescriber_point
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - mcp # Optional service - only runs when specifically requested
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile}
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NODE_ENV: ${NODE_ENV:-production}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:3001}
+      WATCHPACK_POLLING: ${WATCHPACK_POLLING:-false}
+      DISABLE_CACHE: ${DISABLE_CACHE:-false}
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-
-  ai-service:
-    build:
-      context: ./ai-service
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/prescriber_point
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./ai-service:/app
 
 volumes:
   postgres_data:
