@@ -15,6 +15,7 @@ export interface DrugEnrichmentResult {
   contraindicationsSummary?: string;
   aiGeneratedFaqs: Array<{ question: string; answer: string }>;
   relatedDrugs: string[];
+  sophisticatedRelatedDrugs?: any[];
   relatedConditions: string[];
   keywords: string[];
   structuredData: any;

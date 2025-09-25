@@ -195,6 +195,34 @@ export class EnrichmentMcpService {
       // Step 3: Enrich with AI
       const enrichedData = await this.aiService.enrichDrugData(fdaData);
 
+      // Step 3.5: Generate related drugs using sophisticated clinical prompt
+      try {
+        this.logger.debug(
+          `Generating related drugs for ${fdaData.openfda?.brand_name?.[0] || 'drug'}`,
+        );
+
+        // Build specialized related drugs prompt
+        const relatedDrugsPrompt = this.buildRelatedDrugsPrompt(enrichedData, 5);
+
+        // Use AI service to generate related drugs with clinical prompt
+        const relatedDrugs = await this.aiService.generateRelatedDrugs(relatedDrugsPrompt, 5);
+
+        if (relatedDrugs && relatedDrugs.length > 0) {
+          // Keep the simple array for backward compatibility, but also store the full data
+          enrichedData.relatedDrugs = relatedDrugs.map(
+            (drug) => drug.name || drug.brandName || drug.genericName,
+          );
+          // Store the full sophisticated related drugs data for entity creation
+          enrichedData.sophisticatedRelatedDrugs = relatedDrugs;
+          this.logger.log(`Generated ${relatedDrugs.length} related drugs using clinical prompt`);
+        } else {
+          this.logger.warn('Sophisticated related drugs generation returned no results');
+        }
+      } catch (error) {
+        this.logger.warn('Failed to generate sophisticated related drugs, using fallback', error);
+        // Keep the existing relatedDrugs from basic enrichment
+      }
+
       // Step 4: Apply context if provided
       if (context) {
         enrichedData.summary = await this.applyContextToSummary(enrichedData.summary, context);
@@ -344,6 +372,92 @@ export class EnrichmentMcpService {
     }, 0);
 
     return totalConfidence / results.length;
+  }
+
+  /**
+   * Builds sophisticated related drugs prompt for clinical accuracy
+   */
+  private buildRelatedDrugsPrompt(
+    sourceDrugData: any,
+    maxResults: number,
+    relationshipTypes: string[] = [
+      'similar_indication',
+      'same_class',
+      'alternative',
+      'generic_equivalent',
+    ],
+  ): string {
+    const brandName = sourceDrugData.title || 'Unknown Drug';
+    const summary = sourceDrugData.summary || '';
+    const indications = sourceDrugData.indicationSummary || 'N/A';
+    const keywords = sourceDrugData.keywords?.join(', ') || 'N/A';
+    const sideEffects = sourceDrugData.sideEffectsSummary || 'N/A';
+    const dosage = sourceDrugData.dosageSummary || 'N/A';
+    const warnings = sourceDrugData.warningsSummary || 'N/A';
+
+    return `You are a clinical pharmacist and drug information specialist. Your task is to identify ${maxResults} clinically relevant related medications for healthcare professionals.
+
+**SOURCE MEDICATION ANALYSIS:**
+- Brand Name: ${brandName}
+- Clinical Summary: ${summary}
+- Primary Indications: ${indications}
+- Therapeutic Class/Keywords: ${keywords}
+- Side Effects Profile: ${sideEffects}
+- Dosing Information: ${dosage}
+- Safety Warnings: ${warnings}
+
+**RELATIONSHIP CATEGORIES TO CONSIDER:**
+${relationshipTypes
+  .map((type) => {
+    const descriptions = {
+      similar_indication: 'Drugs treating the same or overlapping medical conditions',
+      same_class: 'Drugs in the same pharmacological/therapeutic class',
+      alternative: 'Alternative treatment options with different mechanisms',
+      generic_equivalent: 'Generic versions or bioequivalent formulations',
+    };
+    return `- ${type}: ${descriptions[type] || type}`;
+  })
+  .join('\n')}
+
+**CLINICAL REQUIREMENTS:**
+1. Prioritize drugs commonly prescribed in clinical practice
+2. Include both brand and generic names when available
+3. Focus on FDA-approved medications with established safety profiles
+4. Consider drug interactions, contraindications, and patient populations
+5. Provide clinically relevant relationship descriptions
+6. Include confidence scores based on clinical evidence strength
+
+**OUTPUT SPECIFICATIONS:**
+Return a JSON array with exactly ${maxResults} entries. Each entry must include:
+
+{
+  "name": "Primary drug name (generic preferred)",
+  "ndc": "National Drug Code (if available)",
+  "brandName": "Brand/trade name",
+  "genericName": "Generic/international name",
+  "manufacturer": "Pharmaceutical company",
+  "indication": "Primary FDA-approved indication",
+  "description": "Clinical relationship explanation (2-3 sentences)",
+  "relationshipType": "one of: ${relationshipTypes.join('|')}",
+  "confidenceScore": 0.0-1.0
+}
+
+**CLINICAL FOCUS AREAS:**
+- Cardiovascular medications (statins, ACE inhibitors, beta-blockers)
+- Diabetes management (metformin, insulin, SGLT2 inhibitors)
+- Pain management (NSAIDs, opioids, gabapentinoids)
+- Mental health (SSRIs, benzodiazepines, mood stabilizers)
+- Infectious disease (antibiotics, antivirals, antifungals)
+- Gastrointestinal (PPIs, H2 blockers, prokinetics)
+
+**QUALITY STANDARDS:**
+- Use only FDA-approved medications
+- Include real NDC codes when possible
+- Provide evidence-based relationship descriptions
+- Ensure clinical accuracy and relevance
+- Focus on commonly prescribed medications
+
+Generate clinically relevant related drugs that would be useful for healthcare professionals making prescribing decisions.`;
   }
 
   /**

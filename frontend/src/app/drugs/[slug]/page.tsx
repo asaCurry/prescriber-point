@@ -92,8 +92,11 @@ async function getDrugData(slug: string, waitForEnrichment: boolean = false): Pr
     }
 
     const response = await fetch(url.toString(), {
-      // Traditional SSR - no caching, always fetch fresh data
-      cache: 'no-store',
+      // Smart caching: cache for 5 minutes but allow webhook invalidation
+      next: {
+        revalidate: 300, // 5 minutes
+        tags: [`drug-${ndc}`, 'drugs'],
+      },
       headers: {
         Accept: 'application/json',
         'User-Agent': 'PrescriberPoint-SSR/1.0',
@@ -331,10 +334,9 @@ export async function generateMetadata({ params }: DrugPageProps): Promise<Metad
 
 // Loading component for better UX
 
-// Force dynamic rendering for SSR-only
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
+// Smart caching with webhook invalidation
+export const dynamic = 'force-dynamic' // Still SSR, but with caching
+export const revalidate = 300 // 5 minutes default
 export const runtime = 'nodejs'
 
 export default async function DrugPage({ params }: DrugPageProps) {

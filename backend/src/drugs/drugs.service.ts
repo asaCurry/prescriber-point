@@ -17,6 +17,7 @@ import { ValidationService } from '../common/services/validation.service';
 import { EnrichmentMcpService } from '../ai/services/enrichment-mcp.service';
 import { RelatedDrugsService } from '../ai/services/related-drugs.service';
 import { McpToolsService } from '../ai/services/mcp-tools.service';
+import { CacheInvalidationService } from '../common/services/cache-invalidation.service';
 import { IdentifierType } from '../ai/dto/enrichment-request.dto';
 
 @Injectable()
@@ -56,6 +57,7 @@ export class DrugsService {
     private relatedDrugsService: RelatedDrugsService,
     @Inject(forwardRef(() => McpToolsService))
     private mcpToolsService: McpToolsService,
+    private cacheInvalidationService: CacheInvalidationService,
   ) {}
 
   async create(createDrugDto: CreateDrugDto): Promise<Drug> {
@@ -583,7 +585,10 @@ export class DrugsService {
               contraindicationsSummary: firstResult.data.contraindicationsSummary,
               aiGeneratedFaqs: firstResult.data.aiGeneratedFaqs,
               keywords: firstResult.data.keywords,
-              structuredData: firstResult.data.structuredData,
+              structuredData: {
+                ...firstResult.data.structuredData,
+                sophisticatedRelatedDrugs: firstResult.data.sophisticatedRelatedDrugs,
+              },
               isReviewed: false,
               isPublished: true,
             });
@@ -742,7 +747,10 @@ export class DrugsService {
               contraindicationsSummary: firstResult.data.contraindicationsSummary,
               aiGeneratedFaqs: firstResult.data.aiGeneratedFaqs,
               keywords: firstResult.data.keywords,
-              structuredData: firstResult.data.structuredData,
+              structuredData: {
+                ...firstResult.data.structuredData,
+                sophisticatedRelatedDrugs: firstResult.data.sophisticatedRelatedDrugs,
+              },
               isReviewed: false,
               isPublished: true,
             });
@@ -767,6 +775,9 @@ export class DrugsService {
 
         // Also trigger related drugs generation if none exist
         await this.triggerRelatedDrugsGenerationViaMCP(drug);
+
+        // Invalidate frontend cache after successful enrichment
+        this.invalidateCacheForDrug(drug);
       } catch (enrichmentError) {
         // Check if it's a duplicate key constraint error
         if (
@@ -806,6 +817,27 @@ export class DrugsService {
   }
 
   /**
+   * Invalidate Next.js cache for a drug after enrichment
+   */
+  private async invalidateCacheForDrug(drug: Drug): Promise<void> {
+    try {
+      // Generate the slug for the drug page
+      const slug = this.cacheInvalidationService.generateDrugSlug(
+        drug.brandName || drug.genericName || 'unknown',
+        drug.ndc,
+      );
+
+      // Invalidate the cache for this specific drug page
+      await this.cacheInvalidationService.invalidateDrugCache(slug, drug.ndc);
+
+      this.logger.debug(`Cache invalidated for drug page: /drugs/${slug}`);
+    } catch (error) {
+      this.logger.warn(`Failed to invalidate cache for drug ${drug.brandName}:`, error.message);
+      // Don't throw - cache invalidation failure shouldn't break enrichment
+    }
+  }
+
+  /**
    * Trigger related drugs generation via MCP (background process)
    */
   private async triggerRelatedDrugsGenerationViaMCP(drug: Drug): Promise<void> {
@@ -836,49 +868,92 @@ export class DrugsService {
         `🚀 Generating related drugs via MCP for drug: ${drug.brandName} (ID: ${drug.id}, NDC: ${drug.ndc})`,
       );
 
-      // Try to use MCP tools first
+      // First, check if we have sophisticated related drugs data from recent enrichment
       let relatedDrugsData: any[] = [];
 
       try {
-        this.logger.debug(`📞 Calling MCP tools service for related drugs...`);
-        const mcpRelatedDrugs = await this.mcpToolsService.findRelatedDrugsViaMCP(
-          {
-            type: 'ndc',
-            value: drug.ndc,
-          },
-          5,
-          ['similar_indication', 'same_class', 'alternative'],
-          true,
-        );
+        this.logger.debug(`🔍 Checking for sophisticated related drugs data from enrichment...`);
 
-        this.logger.debug(`📊 MCP returned ${mcpRelatedDrugs.length} related drugs`);
+        // Look for enrichment data with sophisticated related drugs
+        const enrichment = await this.enrichmentRepository.findOne({
+          where: { drug: { id: drug.id } },
+        });
 
-        if (mcpRelatedDrugs.length > 0) {
-          relatedDrugsData = mcpRelatedDrugs.map((rd: any) => ({
-            name: rd.name,
+        if (enrichment?.structuredData?.sophisticatedRelatedDrugs) {
+          this.logger.debug(`✨ Found sophisticated related drugs data from AI enrichment`);
+          const sophisticatedData = enrichment.structuredData.sophisticatedRelatedDrugs;
+
+          relatedDrugsData = sophisticatedData.map((rd: any) => ({
+            name: rd.name || rd.brandName || rd.genericName,
             ndc: rd.ndc,
             brandName: rd.brandName,
             genericName: rd.genericName,
             manufacturer: rd.manufacturer,
             indication: rd.indication,
             description: rd.description,
-            relationshipType: rd.relationshipType,
-            confidenceScore: rd.confidenceScore,
+            relationshipType: rd.relationshipType || 'related',
+            confidenceScore: rd.confidenceScore || 0.8,
             metadata: {
-              generatedBy: 'mcp',
+              generatedBy: 'ai-enrichment',
+              aiModel: rd.aiModel,
               timestamp: new Date().toISOString(),
               sourceDrug: drug.ndc,
             },
           }));
-          this.logger.debug(`✅ MCP generated ${relatedDrugsData.length} related drugs`);
-        } else {
-          this.logger.debug(`⚠️ MCP returned no related drugs`);
+          this.logger.debug(
+            `✅ Using ${relatedDrugsData.length} sophisticated AI-generated related drugs`,
+          );
         }
-      } catch (mcpError) {
-        this.logger.error(
-          `❌ MCP related drugs generation failed, falling back to basic generation:`,
-          mcpError,
+      } catch (enrichmentError) {
+        this.logger.warn(
+          `⚠️ Failed to load sophisticated related drugs from enrichment:`,
+          enrichmentError,
         );
+      }
+
+      // Fallback to MCP tools if no sophisticated data available
+      if (relatedDrugsData.length === 0) {
+        try {
+          this.logger.debug(`📞 Falling back to MCP tools service for related drugs...`);
+          const mcpRelatedDrugs = await this.mcpToolsService.findRelatedDrugsViaMCP(
+            {
+              type: 'ndc',
+              value: drug.ndc,
+            },
+            5,
+            ['similar_indication', 'same_class', 'alternative'],
+            true,
+          );
+
+          this.logger.debug(`📊 MCP tools returned ${mcpRelatedDrugs.length} related drugs`);
+
+          if (mcpRelatedDrugs.length > 0) {
+            relatedDrugsData = mcpRelatedDrugs.map((rd: any) => ({
+              name: rd.name,
+              ndc: rd.ndc,
+              brandName: rd.brandName,
+              genericName: rd.genericName,
+              manufacturer: rd.manufacturer,
+              indication: rd.indication,
+              description: rd.description,
+              relationshipType: rd.relationshipType,
+              confidenceScore: rd.confidenceScore,
+              metadata: {
+                generatedBy: 'mcp-tools',
+                timestamp: new Date().toISOString(),
+                sourceDrug: drug.ndc,
+              },
+            }));
+            this.logger.debug(`✅ MCP tools generated ${relatedDrugsData.length} related drugs`);
+          } else {
+            this.logger.debug(`⚠️ MCP tools returned no related drugs`);
+          }
+        } catch (mcpError) {
+          this.logger.error(
+            `❌ MCP tools related drugs generation failed, falling back to basic generation:`,
+            mcpError,
+          );
+        }
       }
 
       // Fallback to basic generation if MCP fails or returns no results

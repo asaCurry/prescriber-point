@@ -33,7 +33,8 @@
       "Bash(npm test)",
       "Bash(npm test:*)",
       "Bash(time curl:*)",
-      "Bash(winpty docker exec -it prescriber-point-backend-1 ls -la dist/)"
+      "Bash(winpty docker exec -it prescriber-point-backend-1 ls -la dist/)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

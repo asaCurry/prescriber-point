@@ -8,6 +8,7 @@ import { DrugEnrichment } from './entities/drug-enrichment.entity';
 import { RelatedDrug } from './entities/related-drug.entity';
 import { FdaService, DrugSearchResult, FDADrugResult } from '../fda/fda.service';
 import { ValidationService } from '../common/services/validation.service';
+import { CacheInvalidationService } from '../common/services/cache-invalidation.service';
 import { EnrichmentMcpService } from '../ai/services/enrichment-mcp.service';
 import { RelatedDrugsService } from '../ai/services/related-drugs.service';
 import { McpToolsService } from '../ai/services/mcp-tools.service';
@@ -120,6 +121,13 @@ describe('DrugsService', () => {
 
     const mockMcpToolsService = {
       findRelatedDrugs: jest.fn(),
+      findRelatedDrugsViaMCP: jest.fn().mockResolvedValue([]),
+    };
+
+    const mockCacheInvalidationService = {
+      invalidateDrugCache: jest.fn(),
+      generateDrugSlug: jest.fn().mockReturnValue('test-slug'),
+      healthCheck: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -156,6 +164,10 @@ describe('DrugsService', () => {
         {
           provide: McpToolsService,
           useValue: mockMcpToolsService,
+        },
+        {
+          provide: CacheInvalidationService,
+          useValue: mockCacheInvalidationService,
         },
       ],
     }).compile();

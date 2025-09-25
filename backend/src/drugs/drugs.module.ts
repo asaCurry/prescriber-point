@@ -8,6 +8,7 @@ import { RelatedDrug } from './entities/related-drug.entity';
 import { RelatedDrugsService } from '../ai/services/related-drugs.service';
 import { FdaModule } from '../fda/fda.module';
 import { CommonModule } from '../common/common.module';
+import { CacheInvalidationService } from '../common/services/cache-invalidation.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { CommonModule } from '../common/common.module';
     forwardRef(() => import('../ai/ai.module').then((m) => m.AIModule)),
   ],
   controllers: [DrugsController],
-  providers: [DrugsService, RelatedDrugsService],
+  providers: [DrugsService, RelatedDrugsService, CacheInvalidationService],
   exports: [DrugsService],
 })
 export class DrugsModule {}
